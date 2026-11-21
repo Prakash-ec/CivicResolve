@@ -148,8 +148,30 @@ export const PublicMapExplorerPage: React.FC = () => {
         status: statusFilter,
         ward: wardFilter,
       });
-      if (res.points && res.points.length > 0) {
-        setPoints(res.points);
+      if (res.points && Array.isArray(res.points) && res.points.length > 0) {
+        const normalized: MapPoint[] = res.points.map((p: any) => {
+          const lat = Number(p.location?.lat ?? p.lat ?? 13.0827);
+          const lng = Number(p.location?.lng ?? p.lng ?? 80.2707);
+          const addressText = p.location?.addressText || p.addressText || 'Municipal Area';
+          const ward = p.location?.ward || p.ward || 'General Ward';
+          const priority = typeof p.priority === 'object' ? (p.priority?.level || 'medium') : (p.priority || 'medium');
+          const category = p.category || p.userCategory || 'general';
+
+          return {
+            id: String(p.id || `pt_${Math.random()}`),
+            publicId: String(p.publicId || 'CR-2026-XXXXXX'),
+            title: String(p.title || 'Civic Grievance'),
+            category,
+            priority,
+            status: String(p.status || 'SUBMITTED'),
+            statusLabel: String(p.statusLabel || p.status || 'Reported'),
+            location: { lat, lng, addressText, ward },
+            upvotes: Number(p.upvotes || 0),
+            imageUrl: p.imageUrl || p.imageUrls?.[0] || undefined,
+            createdAt: p.createdAt || new Date().toISOString(),
+          };
+        });
+        setPoints(normalized);
       } else {
         // Fallback realistic points
         setPoints(getMockPoints());
@@ -231,13 +253,16 @@ export const PublicMapExplorerPage: React.FC = () => {
   ];
 
   const filteredPoints = points.filter((p) => {
+    if (!p) return false;
+    const addr = p.location?.addressText || (p as any).addressText || '';
+    const ward = p.location?.ward || (p as any).ward || '';
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
-      p.publicId.toLowerCase().includes(q) ||
-      p.title.toLowerCase().includes(q) ||
-      p.location.addressText.toLowerCase().includes(q) ||
-      (p.location.ward && p.location.ward.toLowerCase().includes(q))
+      (p.publicId && p.publicId.toLowerCase().includes(q)) ||
+      (p.title && p.title.toLowerCase().includes(q)) ||
+      addr.toLowerCase().includes(q) ||
+      ward.toLowerCase().includes(q)
     );
   });
 
@@ -522,143 +547,159 @@ export const PublicMapExplorerPage: React.FC = () => {
 
           {/* Severity Risk Heatmap Intensity Circles */}
           {showHeatmap &&
-            filteredPoints.map((pt) => {
-              const color =
-                pt.priority === 'critical' ? '#DC2626' : pt.priority === 'high' ? '#EA580C' : '#D97706';
-              const radius = pt.priority === 'critical' ? 260 : pt.priority === 'high' ? 190 : 130;
+            filteredPoints
+              .filter((pt) => pt && (pt.location?.lat != null || (pt as any).lat != null))
+              .map((pt) => {
+                const lat = Number(pt.location?.lat ?? (pt as any).lat ?? 13.0827);
+                const lng = Number(pt.location?.lng ?? (pt as any).lng ?? 80.2707);
+                const color =
+                  pt.priority === 'critical' ? '#DC2626' : pt.priority === 'high' ? '#EA580C' : '#D97706';
+                const radius = pt.priority === 'critical' ? 260 : pt.priority === 'high' ? 190 : 130;
+                return (
+                  <Circle
+                    key={`heat-${pt.id}`}
+                    center={[lat, lng]}
+                    radius={radius}
+                    pathOptions={{
+                      color,
+                      fillColor: color,
+                      fillOpacity: 0.28,
+                      weight: 1.5,
+                    }}
+                  />
+                );
+              })}
+
+          {filteredPoints
+            .filter((pt) => pt && (pt.location?.lat != null || (pt as any).lat != null))
+            .map((pt) => {
+              const lat = Number(pt.location?.lat ?? (pt as any).lat ?? 13.0827);
+              const lng = Number(pt.location?.lng ?? (pt as any).lng ?? 80.2707);
+              const addr = pt.location?.addressText || (pt as any).addressText || 'Municipal Area';
+              const icon = createCategoryPin(pt.priority, pt.category);
               return (
-                <Circle
-                  key={`heat-${pt.id}`}
-                  center={[pt.location.lat, pt.location.lng]}
-                  radius={radius}
-                  pathOptions={{
-                    color,
-                    fillColor: color,
-                    fillOpacity: 0.28,
-                    weight: 1.5,
+                <Marker
+                  key={pt.id}
+                  position={[lat, lng]}
+                  icon={icon}
+                  eventHandlers={{
+                    click: () => {
+                      setSelectedPoint(pt);
+                      setMapCenter([lat, lng]);
+                    },
                   }}
-                />
+                >
+                  <Popup className="civic-custom-popup">
+                    <div className="p-1 space-y-1.5 max-w-[220px]">
+                      <div className="flex items-center justify-between text-[10px]">
+                        <span className="font-mono font-bold text-[#0F2854] bg-blue-50 px-1.5 py-0.5 rounded">
+                          {pt.publicId}
+                        </span>
+                        <span className="font-bold text-orange-600 uppercase">{pt.priority}</span>
+                      </div>
+                      <h4 className="font-bold text-xs text-slate-900 line-clamp-2 leading-tight">
+                        {pt.title}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 truncate">{addr}</p>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPoint(pt)}
+                        className="w-full text-center py-1 mt-1 rounded bg-[#0F2854] text-white text-[10px] font-bold"
+                      >
+                        Inspect Dossier
+                      </button>
+                    </div>
+                  </Popup>
+                </Marker>
               );
             })}
-
-          {filteredPoints.map((pt) => {
-            const icon = createCategoryPin(pt.priority, pt.category);
-            return (
-              <Marker
-                key={pt.id}
-                position={[pt.location.lat, pt.location.lng]}
-                icon={icon}
-                eventHandlers={{
-                  click: () => {
-                    setSelectedPoint(pt);
-                    setMapCenter([pt.location.lat, pt.location.lng]);
-                  },
-                }}
-              >
-                <Popup className="civic-custom-popup">
-                  <div className="p-1 space-y-1.5 max-w-[220px]">
-                    <div className="flex items-center justify-between text-[10px]">
-                      <span className="font-mono font-bold text-[#0F2854] bg-blue-50 px-1.5 py-0.5 rounded">
-                        {pt.publicId}
-                      </span>
-                      <span className="font-bold text-orange-600 uppercase">{pt.priority}</span>
-                    </div>
-                    <h4 className="font-bold text-xs text-slate-900 line-clamp-2 leading-tight">
-                      {pt.title}
-                    </h4>
-                    <p className="text-[10px] text-slate-500 truncate">{pt.location.addressText}</p>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedPoint(pt)}
-                      className="w-full text-center py-1 mt-1 rounded bg-[#0F2854] text-white text-[10px] font-bold"
-                    >
-                      Inspect Dossier
-                    </button>
-                  </div>
-                </Popup>
-              </Marker>
-            );
-          })}
         </MapContainer>
 
         {/* Selected Complaint Slide-Over Dossier Card */}
-        {selectedPoint && (
-          <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-96 bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 z-30 animate-fadeIn space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-[#0F2854] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                    {selectedPoint.publicId}
-                  </span>
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      selectedPoint.status === 'RESOLVED'
-                        ? 'bg-emerald-50 text-emerald-800'
-                        : selectedPoint.status === 'IN_PROGRESS'
-                        ? 'bg-amber-50 text-amber-800'
-                        : 'bg-blue-50 text-blue-800'
-                    }`}
-                  >
-                    {selectedPoint.statusLabel}
-                  </span>
+        {selectedPoint && (() => {
+          const selLat = Number(selectedPoint.location?.lat ?? (selectedPoint as any).lat ?? 13.0827);
+          const selLng = Number(selectedPoint.location?.lng ?? (selectedPoint as any).lng ?? 80.2707);
+          const selAddr = selectedPoint.location?.addressText || (selectedPoint as any).addressText || 'Municipal Area';
+          const selWard = selectedPoint.location?.ward || (selectedPoint as any).ward;
+
+          return (
+            <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-96 bg-white rounded-2xl border border-slate-200 shadow-2xl p-5 z-30 animate-fadeIn space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-[#0F2854] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                      {selectedPoint.publicId}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        selectedPoint.status === 'RESOLVED'
+                          ? 'bg-emerald-50 text-emerald-800'
+                          : selectedPoint.status === 'IN_PROGRESS'
+                          ? 'bg-amber-50 text-amber-800'
+                          : 'bg-blue-50 text-blue-800'
+                      }`}
+                    >
+                      {selectedPoint.statusLabel}
+                    </span>
+                  </div>
+                  <h3 className="font-bold text-sm text-[#0F2854] pt-1 leading-snug">
+                    {selectedPoint.title}
+                  </h3>
                 </div>
-                <h3 className="font-bold text-sm text-[#0F2854] pt-1 leading-snug">
-                  {selectedPoint.title}
-                </h3>
+
+                <button
+                  type="button"
+                  onClick={() => setSelectedPoint(null)}
+                  className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                  aria-label="Close grievance details"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setSelectedPoint(null)}
-                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700"
-                aria-label="Close grievance details"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {selectedPoint.imageUrl && (
-              <img
-                src={selectedPoint.imageUrl}
-                alt={`Evidence photo for ${selectedPoint.title}`}
-                className="w-full h-32 object-cover rounded-xl border border-slate-200"
-              />
-            )}
-
-            <div className="space-y-1.5 text-xs text-slate-600">
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-                <span className="truncate">{selectedPoint.location.addressText}</span>
-              </div>
-              {selectedPoint.location.ward && (
-                <div className="text-[11px] text-slate-500 pl-5">
-                  Jurisdiction: <strong className="text-slate-700">{selectedPoint.location.ward}</strong>
-                </div>
+              {selectedPoint.imageUrl && (
+                <img
+                  src={selectedPoint.imageUrl}
+                  alt={`Evidence photo for ${selectedPoint.title}`}
+                  className="w-full h-32 object-cover rounded-xl border border-slate-200"
+                />
               )}
-            </div>
 
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${selectedPoint.location.lat},${selectedPoint.location.lng}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700"
-              >
-                <Route className="w-3.5 h-3.5 text-orange-500" />
-                <span>Directions</span>
-                <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
-              </a>
+              <div className="space-y-1.5 text-xs text-slate-600">
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                  <span className="truncate">{selAddr}</span>
+                </div>
+                {selWard && (
+                  <div className="text-[11px] text-slate-500 pl-5">
+                    Jurisdiction: <strong className="text-slate-700">{selWard}</strong>
+                  </div>
+                )}
+              </div>
 
-              <Link
-                to={`/track?id=${selectedPoint.publicId}`}
-                className="inline-flex items-center gap-1 text-xs font-bold px-4 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white shadow-sm transition-colors"
-              >
-                <span>Track Ticket</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${selLat},${selLng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700"
+                >
+                  <Route className="w-3.5 h-3.5 text-orange-500" />
+                  <span>Directions</span>
+                  <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+                </a>
+
+                <Link
+                  to={`/track?id=${selectedPoint.publicId}`}
+                  className="inline-flex items-center gap-1 text-xs font-bold px-4 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white shadow-sm transition-colors"
+                >
+                  <span>Track Ticket</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

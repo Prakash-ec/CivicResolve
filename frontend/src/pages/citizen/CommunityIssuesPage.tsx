@@ -398,32 +398,39 @@ export const CommunityIssuesPage: React.FC = () => {
                   </Marker>
                 )}
 
-                {filteredIssues.map((iss) => (
-                  <Marker
-                    key={iss.id}
-                    position={[iss.location.lat, iss.location.lng]}
-                    icon={createIssuePin(iss.status, iss.communityConfirmationsCount)}
-                  >
-                    <Popup>
-                      <div className="p-2 space-y-1.5 text-xs font-sans">
-                        <span className="font-bold text-[#0F2854] block">
-                          {iss.title}
-                        </span>
-                        <p className="text-slate-600 text-[11px]">
-                          {iss.location.addressText}
-                        </p>
-                        <div className="flex items-center justify-between text-[11px] pt-1">
-                          <span className="text-orange-600 font-bold">
-                            {iss.distanceMeters}m away
-                          </span>
-                          <span className="font-semibold text-slate-500">
-                            {iss.communityConfirmationsCount} confirmations
-                          </span>
-                        </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
+                {filteredIssues
+                  .filter((iss) => Boolean(iss && (iss.location?.lat != null || (iss as any).lat != null)))
+                  .map((iss) => {
+                    const lat = Number(iss.location?.lat ?? (iss as any).lat ?? 13.0827);
+                    const lng = Number(iss.location?.lng ?? (iss as any).lng ?? 80.2707);
+                    const addr = iss.location?.addressText || (iss as any).addressText || 'Municipal Area';
+                    return (
+                      <Marker
+                        key={iss.id}
+                        position={[lat, lng]}
+                        icon={createIssuePin(iss.status, iss.communityConfirmationsCount)}
+                      >
+                        <Popup>
+                          <div className="p-2 space-y-1.5 text-xs font-sans">
+                            <span className="font-bold text-[#0F2854] block">
+                              {iss.title}
+                            </span>
+                            <p className="text-slate-600 text-[11px]">
+                              {addr}
+                            </p>
+                            <div className="flex items-center justify-between text-[11px] pt-1">
+                              <span className="text-orange-600 font-bold">
+                                {iss.distanceMeters}m away
+                              </span>
+                              <span className="font-semibold text-slate-500">
+                                {iss.communityConfirmationsCount} confirmations
+                              </span>
+                            </div>
+                          </div>
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
               </MapContainer>
             </div>
           </div>

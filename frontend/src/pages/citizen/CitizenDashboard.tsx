@@ -508,57 +508,66 @@ export const CitizenDashboard: React.FC = () => {
             </div>
 
             {/* Embedded Google Maps View */}
-            <div className="h-72 sm:h-96 w-full relative bg-slate-100">
-              <iframe
-                title="Google Maps Location View"
-                src={`https://maps.google.com/maps?q=${mapModalComplaint.location.lat},${mapModalComplaint.location.lng}&hl=en&z=17&output=embed`}
-                className="w-full h-full border-0"
-                loading="lazy"
-                allowFullScreen
-              />
-            </div>
+            {(() => {
+              const mLat = Number(mapModalComplaint.location?.lat ?? (mapModalComplaint as any).lat ?? 13.0827);
+              const mLng = Number(mapModalComplaint.location?.lng ?? (mapModalComplaint as any).lng ?? 80.2707);
+              const mAddr = mapModalComplaint.location?.addressText || (mapModalComplaint as any).addressText || 'Municipal Area';
+              return (
+                <>
+                  <div className="h-72 sm:h-96 w-full relative bg-slate-100">
+                    <iframe
+                      title="Google Maps Location View"
+                      src={`https://maps.google.com/maps?q=${mLat},${mLng}&hl=en&z=17&output=embed`}
+                      className="w-full h-full border-0"
+                      loading="lazy"
+                      allowFullScreen
+                    />
+                  </div>
 
-            {/* Modal Footer / Google Maps Tool Bar */}
-            <div className="p-4 border-t border-surface-border bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="text-civic-muted truncate max-w-xs">
-                <span className="font-semibold text-civic-dark block truncate">
-                  {mapModalComplaint.location.addressText}
-                </span>
-                <span className="font-mono text-[11px]">
-                  {mapModalComplaint.location.lat.toFixed(5)}, {mapModalComplaint.location.lng.toFixed(5)}
-                </span>
-              </div>
+                  {/* Modal Footer / Google Maps Tool Bar */}
+                  <div className="p-4 border-t border-surface-border bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div className="text-civic-muted truncate max-w-xs">
+                      <span className="font-semibold text-civic-dark block truncate">
+                        {mAddr}
+                      </span>
+                      <span className="font-mono text-[11px]">
+                        {mLat.toFixed(5)}, {mLng.toFixed(5)}
+                      </span>
+                    </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
-                <a
-                  href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${mapModalComplaint.location.lat},${mapModalComplaint.location.lng}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border bg-white text-civic-dark hover:bg-surface-subtle font-semibold shadow-2xs"
-                >
-                  <Eye className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Street View 360°</span>
-                </a>
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${mapModalComplaint.location.lat},${mapModalComplaint.location.lng}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border bg-white text-civic-dark hover:bg-surface-subtle font-semibold shadow-2xs"
-                >
-                  <Route className="w-3.5 h-3.5 text-orange-600" />
-                  <span>Directions</span>
-                </a>
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${mapModalComplaint.location.lat},${mapModalComplaint.location.lng}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm"
-                >
-                  <span>Google Maps</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <a
+                        href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${mLat},${mLng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border bg-white text-civic-dark hover:bg-surface-subtle font-semibold shadow-2xs"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Street View 360°</span>
+                      </a>
+                      <a
+                        href={`https://www.google.com/maps/dir/?api=1&destination=${mLat},${mLng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-surface-border bg-white text-civic-dark hover:bg-surface-subtle font-semibold shadow-2xs"
+                      >
+                        <Route className="w-3.5 h-3.5 text-orange-600" />
+                        <span>Directions</span>
+                      </a>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${mLat},${mLng}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-sm"
+                      >
+                        <span>Google Maps</span>
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

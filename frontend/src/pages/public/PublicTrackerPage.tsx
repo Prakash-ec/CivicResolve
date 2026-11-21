@@ -495,32 +495,38 @@ export const PublicTrackerPage: React.FC = () => {
                 </div>
 
                 <div className="h-64 w-full rounded-2xl border border-slate-200 overflow-hidden relative shadow-xs">
-                  <MapContainer
-                    center={[complaint.location.lat, complaint.location.lng]}
-                    zoom={15}
-                    scrollWheelZoom={false}
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    <TileLayer
-                      attribution="&copy; OpenStreetMap contributors"
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    {/* Privacy Circle (~200m radius fuzzed coverage) */}
-                    <Circle
-                      center={[complaint.location.lat, complaint.location.lng]}
-                      radius={220}
-                      pathOptions={{
-                        color: '#EA580C',
-                        fillColor: '#EA580C',
-                        fillOpacity: 0.15,
-                        weight: 2,
-                      }}
-                    />
-                    <Marker
-                      position={[complaint.location.lat, complaint.location.lng]}
-                      icon={pinIcon}
-                    />
-                  </MapContainer>
+                  {(() => {
+                    const cLat = Number(complaint.location?.lat ?? (complaint as any).lat ?? 13.0827);
+                    const cLng = Number(complaint.location?.lng ?? (complaint as any).lng ?? 80.2707);
+                    return (
+                      <MapContainer
+                        center={[cLat, cLng]}
+                        zoom={15}
+                        scrollWheelZoom={false}
+                        style={{ height: '100%', width: '100%' }}
+                      >
+                        <TileLayer
+                          attribution="&copy; OpenStreetMap contributors"
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                        {/* Privacy Circle (~200m radius fuzzed coverage) */}
+                        <Circle
+                          center={[cLat, cLng]}
+                          radius={220}
+                          pathOptions={{
+                            color: '#EA580C',
+                            fillColor: '#EA580C',
+                            fillOpacity: 0.15,
+                            weight: 2,
+                          }}
+                        />
+                        <Marker
+                          position={[cLat, cLng]}
+                          icon={pinIcon}
+                        />
+                      </MapContainer>
+                    );
+                  })()}
                   <div className="absolute bottom-2 left-2 z-[1000] bg-white/90 backdrop-blur-xs text-[10px] text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200 shadow-xs flex items-center gap-1">
                     <ShieldAlert className="w-3 h-3 text-orange-500" />
                     <span>Area buffer displayed to safeguard citizen household privacy</span>

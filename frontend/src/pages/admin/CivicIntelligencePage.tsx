@@ -187,9 +187,9 @@ export const CivicIntelligencePage: React.FC = () => {
     setSelectedBoundary(null);
   };
 
-  const defaultCenter: [number, number] = selectedBoundary
+  const defaultCenter: [number, number] = selectedBoundary?.center?.lat != null
     ? [selectedBoundary.center.lat, selectedBoundary.center.lng]
-    : clusters.length > 0
+    : clusters.length > 0 && clusters[0]?.centroid?.lat != null
     ? [clusters[0].centroid.lat, clusters[0].centroid.lng]
     : [11.0018, 77.0143];
 
@@ -484,7 +484,9 @@ export const CivicIntelligencePage: React.FC = () => {
               })}
 
               {/* Hotspot Cluster Centroids */}
-              {clusters.map((cluster) => (
+              {clusters
+                .filter((cluster) => cluster?.centroid?.lat != null && cluster?.centroid?.lng != null)
+                .map((cluster) => (
                 <Circle
                   key={cluster.id}
                   center={[cluster.centroid.lat, cluster.centroid.lng]}

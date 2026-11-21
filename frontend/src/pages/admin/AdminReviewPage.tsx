@@ -287,7 +287,7 @@ export const AdminReviewPage: React.FC = () => {
 
               <div className="flex items-center gap-2 shrink-0">
                 <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${complaint.location.lat},${complaint.location.lng}`}
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${complaint.location?.lat ?? (complaint as any).lat ?? 13.0827},${complaint.location?.lng ?? (complaint as any).lng ?? 80.2707}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 font-semibold text-slate-700"

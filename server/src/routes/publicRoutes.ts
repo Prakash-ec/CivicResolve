@@ -410,20 +410,37 @@ router.get('/complaints/map-points', async (_req: Request, res: Response) => {
     const rawLng = c.location?.lng ?? c.location?.longitude ?? 80.2707;
     const safeLat = Number(Number(rawLat).toFixed(4));
     const safeLng = Number(Number(rawLng).toFixed(4));
+    const safeAddress = (c.location?.addressText || '')
+      .replace(/^#?\s*\d+[-\w\/]*,?\s*/i, '')
+      .replace(/\b(Flat|Apt|Plot|Door|House)\s*(No\.?|#)?\s*\d+[-\w\/]*,?\s*/gi, '')
+      .trim() || 'Municipal Area';
+    const safeWard = c.location?.ward || 'General Ward';
+    const safeZone = c.location?.zone || 'Central Zone';
+    const safePriority = typeof c.priority === 'object' ? (c.priority?.level || 'medium') : (c.priority || 'medium');
 
     return {
       id: c.id,
       publicId: c.publicId,
       title: c.title,
       userCategory: c.userCategory,
+      category: c.userCategory,
       status: c.status,
       statusLabel: c.statusLabel || (PUBLIC_STATUS_LABELS as any)[c.status] || c.status,
-      priority: c.priority || { level: 'medium', score: 50 },
+      priority: safePriority,
+      priorityObject: c.priority || { level: safePriority, score: 50 },
       lat: safeLat,
       lng: safeLng,
-      addressText: c.location?.addressText || '',
-      ward: c.location?.ward || 'General Ward',
-      zone: c.location?.zone || 'Chennai Central',
+      location: {
+        lat: safeLat,
+        lng: safeLng,
+        addressText: safeAddress,
+        ward: safeWard,
+        zone: safeZone,
+        municipality: c.location?.municipality || 'Municipal Corporation',
+      },
+      addressText: safeAddress,
+      ward: safeWard,
+      zone: safeZone,
       department: c.department?.name || 'Municipal Administration',
       imageUrl: c.imageUrls?.[0] || null,
       resolutionProofUrl: c.resolutionProof?.proofImageUrl || null,

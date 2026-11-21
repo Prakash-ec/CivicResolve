@@ -26,11 +26,13 @@ import { CivicIntelligencePage } from '../../pages/admin/CivicIntelligencePage.j
 import { AdminImageReviewPage } from '../../pages/admin/AdminImageReviewPage.js';
 import { ProtectedRoute } from '../../features/auth/ProtectedRoute.js';
 import { AdminRoute } from '../../features/auth/AdminRoute.js';
+import { RouteErrorBoundary } from '../../components/shared/RouteErrorBoundary.js';
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <MainLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         index: true,
@@ -65,6 +67,7 @@ export const router = createBrowserRouter([
       {
         path: 'map',
         element: <PublicMapExplorerPage />,
+        errorElement: <RouteErrorBoundary />,
       },
       {
         path: 'news',
