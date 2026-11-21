@@ -101,6 +101,35 @@ Retrieves a paginated list of public grievances with all citizen PII automatical
 }
 ```
 
+#### `GET /complaints/map-points`
+Retrieves geospatial coordinates, category, priority, and sanitized ward details for interactive GIS mapping and heatmap visualization.
+- **Auth Required:** No (Public)
+- **Response `200 OK`:**
+```json
+{
+  "success": true,
+  "count": 45,
+  "points": [
+    {
+      "id": "comp_1732185600000_a1b2",
+      "publicId": "CR-2026-001252",
+      "lat": 11.0168,
+      "lng": 76.9558,
+      "category": "Roads & Footpaths",
+      "priority": "high",
+      "location": {
+        "lat": 11.0168,
+        "lng": 76.9558,
+        "addressText": "MG Road, Ward 24",
+        "ward": "Ward 24",
+        "zone": "Central Zone",
+        "municipality": "Coimbatore Corporation"
+      }
+    }
+  ]
+}
+```
+
 #### `GET /complaints/track/:publicId`
 Tracks a grievance by its public reference identifier (e.g., `CR-2026-001252`).
 - **Auth Required:** No (Public)

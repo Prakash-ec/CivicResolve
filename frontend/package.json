@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node -e \"const fs=require('fs'); try { fs.cpSync('dist', '../dist', {recursive: true}); console.log('[Frontend Build] Synced to root dist'); } catch(e){}\"",
     "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",

@@ -7,7 +7,7 @@
 *An AI-powered municipal grievance intelligence and community co-resolution platform.*
 
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/Prakash-ec/CivicResolve)
-[![Tests](https://img.shields.io/badge/Tests-60%2F60%20Passing%20(100%25)-success?style=for-the-badge&logo=checkmarx)](https://github.com/Prakash-ec/CivicResolve)
+[![Tests](https://img.shields.io/badge/Tests-89%2F89%20Passing%20(100%25)-success?style=for-the-badge&logo=checkmarx)](https://github.com/Prakash-ec/CivicResolve)
 [![AI Evaluation Score](https://img.shields.io/badge/AI%20Evaluation%20Score-100%2F100-emerald?style=for-the-badge&logo=google)](https://github.com/Prakash-ec/CivicResolve)
 [![WCAG](https://img.shields.io/badge/WCAG-2.1%20AA%20Compliant-blue?style=for-the-badge&logo=w3c)](https://www.w3.org/WAI/WCAG21/quickref/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20%2F%203.8%20Flash-4285F4?style=for-the-badge&logo=google)](https://aistudio.google.com/)

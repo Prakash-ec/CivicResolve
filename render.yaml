@@ -37,8 +37,8 @@ services:
     runtime: static
     plan: free
     region: singapore
-    buildCommand: npm --prefix frontend install && npm --prefix frontend run build
-    staticPublishPath: ./frontend/dist
+    buildCommand: npm run build
+    staticPublishPath: ./dist
     routes:
       - type: rewrite
         source: /*

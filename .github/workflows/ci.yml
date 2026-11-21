@@ -42,8 +42,11 @@ jobs:
       - name: Validate & Build Server
         run: npm --prefix server run build
 
-      - name: Run Advanced Features Automated Tests
-        run: npm --prefix server run test:advanced
+      - name: Run Backend Integration & Feature Tests
+        run: npm --prefix server run test:all
         env:
           NODE_ENV: test
           FIREBASE_PROJECT_ID: civicresolve-969d3
+
+      - name: Run Frontend Vitest Unit Tests
+        run: npm --prefix frontend test

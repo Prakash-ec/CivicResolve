@@ -22,7 +22,7 @@
     "test:new": "tsx src/tests/newFeaturesTestSuite.ts",
     "test:final": "tsx src/tests/finalProductIntelligenceSuite.ts",
     "test:all": "npm run test:cors && npm run test:auth && npm run test:phase3 && npm run test:advanced && npm run test:final",
-    "test": "npm run test:cors && npm run test:advanced && npm run test:final"
+    "test": "npm run test:cors && npm run test:auth && npm run test:phase3 && npm run test:advanced && npm run test:final"
   },
   "dependencies": {
     "@google/genai": "^3.6.1",
