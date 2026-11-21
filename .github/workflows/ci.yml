@@ -1,0 +1,49 @@
+name: CivicResolve CI / Quality Assurance Pipeline
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  validate-and-test:
+    name: Build, Lint & Automated Verification
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install Root Dependencies
+        run: npm ci || npm install
+
+      # Frontend Pipeline
+      - name: Install Frontend Dependencies
+        run: npm --prefix frontend ci || npm --prefix frontend install
+
+      - name: Validate & Build Frontend
+        run: npm --prefix frontend run build
+
+      # Backend Pipeline
+      - name: Install Server Dependencies
+        run: npm --prefix server ci || npm --prefix server install
+
+      - name: Validate & Build Server
+        run: npm --prefix server run build
+
+      - name: Run Advanced Features Automated Tests
+        run: npm --prefix server run test:advanced
+        env:
+          NODE_ENV: test
+          FIREBASE_PROJECT_ID: civicresolve-969d3

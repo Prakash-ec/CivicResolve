@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && request.auth.token.admin == true;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // User profiles
+    match /users/{userId} {
+      // Users can read their own profile; admins can read any profile
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // On creation, a user can only create their own document with role == 'citizen'
+      allow create: if isOwner(userId) 
+                    && request.resource.data.role == 'citizen'
+                    && request.resource.data.uid == userId;
+                    
+      // On update, users cannot change their role unless they are an admin
+      allow update: if isOwner(userId) 
+                    && (request.resource.data.role == resource.data.role || isAdmin());
+                    
+      // Only admins can delete profiles
+      allow delete: if isAdmin();
+    }
+    
+    // Complaints collection
+    match /complaints/{complaintId} {
+      // Citizen can read if they own it; admin can read any
+      allow read: if isAdmin() || (isAuthenticated() && resource.data.ownerUid == request.auth.uid);
+      
+      // All creation and updates are server-mediated via backend API using Firebase Admin SDK
+      // Citizens cannot write directly to privileged fields (status, priority, department, etc.)
+      allow write: if isAdmin();
+      
+      // Status history: append-only, server-written only
+      match /statusHistory/{eventId} {
+        allow read: if isAdmin() || (isAuthenticated() && get(/databases/$(database)/documents/complaints/$(complaintId)).data.ownerUid == request.auth.uid);
+        allow write: if false; // Server-only
+      }
+      
+      // Resolution details
+      match /resolution/{resId} {
+        allow read: if isAdmin() || (isAuthenticated() && get(/databases/$(database)/documents/complaints/$(complaintId)).data.ownerUid == request.auth.uid);
+        allow write: if false; // Server-only
+      }
+      
+      // Citizen feedback (verify / reopen feedback)
+      match /feedback/{userId} {
+        allow read: if isAdmin() || isOwner(userId);
+        allow write: if isOwner(userId);
+      }
+    }
+    
+    // Departments: public read, admin write
+    match /departments/{deptId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Notifications: owner read and update (mark read)
+    match /notifications/{notifId} {
+      allow read, update: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow write: if isAdmin();
+    }
+    
+    // Audit logs: server-only write, admin read
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}

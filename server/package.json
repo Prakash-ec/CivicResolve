@@ -1,0 +1,44 @@
+{
+  "name": "civicresolve-server",
+  "version": "1.0.0",
+  "description": "CivicResolve Express Backend API with Firebase & Gemini",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "seed:departments": "tsx src/scripts/seedDepartments.ts",
+    "seed:demo": "tsx src/scripts/seedDemoData.ts",
+    "clear:demo": "tsx src/scripts/clearDemoData.ts",
+    "setup:demo": "tsx src/scripts/setupDemoAccounts.ts",
+    "make-admin": "tsx src/scripts/makeAdmin.ts",
+    "test:auth": "tsx src/tests/authTestSuite.ts",
+    "test:phase3": "tsx src/tests/phase3TestSuite.ts",
+    "test:advanced": "tsx src/tests/advancedFeaturesTestSuite.ts",
+    "test:new": "tsx src/tests/newFeaturesTestSuite.ts",
+    "test:final": "node dist/tests/finalProductIntelligenceSuite.js",
+    "test:all": "npm run test:advanced && npm run test:new && npm run test:final",
+    "test": "npm run test:final"
+  },
+  "dependencies": {
+    "@google/genai": "^3.6.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "firebase-admin": "^13.1.0",
+    "helmet": "^8.0.0",
+    "multer": "^1.4.5-lts.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/multer": "^1.4.12",
+    "@types/node": "^22.13.4",
+    "firebase": "^13.4.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
+  }
+}
