@@ -17,11 +17,13 @@ services:
       - key: PORT
         value: 10000
       - key: FRONTEND_URL
-        value: https://civicresolve.onrender.com
+        value: https://civicresolve-7j40.onrender.com
+      - key: CORS_ORIGIN
+        value: https://civicresolve-7j40.onrender.com
       - key: FIREBASE_PROJECT_ID
         value: civicresolve-969d3
       - key: GEMINI_MODEL
-        value: gemini-2.5-flash
+        value: gemini-3.8-flash
       - key: GEMINI_API_KEY
         sync: false
       - key: FIREBASE_CLIENT_EMAIL
@@ -43,7 +45,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://civicresolve-backend.onrender.com/api
+        value: https://civicresolve-m93a.onrender.com/api
       - key: VITE_FIREBASE_PROJECT_ID
         value: civicresolve-969d3
       - key: VITE_FIREBASE_API_KEY
@@ -51,6 +53,6 @@ services:
       - key: VITE_FIREBASE_AUTH_DOMAIN
         value: civicresolve-969d3.firebaseapp.com
       - key: VITE_FIREBASE_STORAGE_BUCKET
-        value: civicresolve-969d3.appspot.com
+        value: civicresolve-969d3.firebasestorage.app
       - key: VITE_FIREBASE_APP_ID
         value: 1:408037973858:web:3ae53468fabf9e3375563b

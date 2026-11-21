@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import { ENV } from './config/env.js';
+import { ENV, getAllowedOrigins } from './config/env.js';
 import path from 'path';
 import healthRoutes from './routes/healthRoutes.js';
 import authRoutes from './routes/authRoutes.js';
@@ -15,13 +15,17 @@ import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
+// Compute normalized list of allowed origins
+const allowedOrigins = getAllowedOrigins();
+console.log('[CivicResolve API] CORS allowed origins:', allowedOrigins);
+
 // Security HTTP headers with strict, secure Content Security Policy
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        connectSrc: ["'self'", ENV.FRONTEND_URL, 'http://localhost:5173', 'https://*.googleapis.com', 'https://*.firebaseio.com'],
+        connectSrc: ["'self'", ...allowedOrigins, 'https://*.googleapis.com', 'https://*.firebaseio.com'],
         imgSrc: ["'self'", 'data:', 'blob:', 'https://images.unsplash.com', 'https://*.tile.openstreetmap.org'],
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
@@ -35,13 +39,33 @@ app.use(
   })
 );
 
-// CORS configuration
-app.use(
-  cors({
-    origin: [ENV.FRONTEND_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
-    credentials: true,
-  })
-);
+// Production-ready CORS configuration
+const corsOptions: cors.CorsOptions = {
+  origin: (requestOrigin, callback) => {
+    // Allow non-browser requests (e.g. server health monitors, curl, backend-to-backend)
+    if (!requestOrigin) {
+      return callback(null, true);
+    }
+    const normalized = requestOrigin.trim().replace(/\/+$/, '');
+    if (allowedOrigins.includes(normalized)) {
+      return callback(null, true);
+    }
+    return callback(
+      new Error(`CORS policy: Origin '${requestOrigin}' is not allowed by CivicResolve API allowlist.`)
+    );
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Disposition'],
+  credentials: false, // Token-based Bearer authentication (no cookies required)
+  maxAge: 86400, // Cache preflight for 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+};
+
+// CORS middleware MUST execute before all routes
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // General request rate limiting
 const generalLimiter = rateLimit({
@@ -85,10 +109,10 @@ app.get('/', (_req, res) => {
 // Centralized error handling
 app.use(errorHandler);
 
-// Start server
-const server = app.listen(ENV.PORT, () => {
-  console.log(`[CivicResolve API] Running on http://localhost:${ENV.PORT}`);
-  console.log(`[CivicResolve API] Health check at http://localhost:${ENV.PORT}/api/health`);
+// Start server on 0.0.0.0 for containerized / Render production compatibility
+const server = app.listen(ENV.PORT, '0.0.0.0', () => {
+  console.log(`[CivicResolve API] Running on http://0.0.0.0:${ENV.PORT}`);
+  console.log(`[CivicResolve API] Health check at http://0.0.0.0:${ENV.PORT}/api/health`);
 });
 
 server.on('error', (err: any) => {

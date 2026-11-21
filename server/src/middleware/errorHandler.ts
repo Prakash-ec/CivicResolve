@@ -13,6 +13,17 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ) {
+  // Handle CORS Origin Rejection Errors
+  if (err.message && err.message.includes('CORS policy')) {
+    return res.status(403).json({
+      error: {
+        code: 'CORS_ORIGIN_DENIED',
+        message: err.message,
+        fieldErrors: {},
+      },
+    });
+  }
+
   // Handle Zod Schema Validation Errors
   if (err instanceof ZodError) {
     const fieldErrors: Record<string, string> = {};

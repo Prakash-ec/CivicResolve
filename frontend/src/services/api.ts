@@ -7,7 +7,50 @@ import {
   CommunityIssue,
 } from '../types/index.js';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+/**
+ * Resolves and normalizes the API base URL.
+ * Strips trailing slashes, prevents duplicate /api prefixes,
+ * and provides safe environment-aware defaults.
+ */
+export function getNormalizedBaseUrl(): string {
+  const envUrl = (import.meta.env.VITE_API_BASE_URL || '').trim();
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, '');
+  }
+  // Safe production fallback: deployed backend on Render
+  if (import.meta.env.PROD) {
+    return 'https://civicresolve-m93a.onrender.com/api';
+  }
+  // Local development fallback: Vite proxy /api -> http://localhost:5000/api
+  return '/api';
+}
+
+export const API_BASE_URL = getNormalizedBaseUrl();
+
+/**
+ * Builds a clean, fully-qualified or proxied API URL.
+ * Guarantees no duplicate // slashes or duplicate /api segments.
+ */
+export function buildApiUrl(endpoint: string): string {
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint;
+  }
+
+  const base = getNormalizedBaseUrl();
+  let cleanEndpoint = endpoint.trim();
+
+  // Ensure single leading slash on endpoint
+  if (!cleanEndpoint.startsWith('/')) {
+    cleanEndpoint = `/${cleanEndpoint}`;
+  }
+
+  // Prevent duplicate /api segment if base ends with /api and endpoint starts with /api/
+  if (base.endsWith('/api') && cleanEndpoint.startsWith('/api/')) {
+    cleanEndpoint = cleanEndpoint.substring(4);
+  }
+
+  return `${base}${cleanEndpoint}`;
+}
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
@@ -19,7 +62,7 @@ export async function apiClient<T>(
 ): Promise<T> {
   const { params, headers = {}, ...rest } = options;
 
-  let url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+  let url = buildApiUrl(endpoint);
   if (params) {
     const searchParams = new URLSearchParams(params);
     url += `?${searchParams.toString()}`;
@@ -225,7 +268,8 @@ export const adminService = {
     });
   },
   exportCsv: async () => {
-    const res = await fetch(`${API_BASE_URL}/admin/complaints/export/csv`, {
+    const targetUrl = buildApiUrl('/admin/complaints/export/csv');
+    const res = await fetch(targetUrl, {
       headers: {
         Authorization: auth.currentUser ? `Bearer ${await auth.currentUser.getIdToken()}` : '',
       },

@@ -13,6 +13,7 @@
     "clear:demo": "tsx src/scripts/clearDemoData.ts",
     "setup:demo": "tsx src/scripts/setupDemoAccounts.ts",
     "make-admin": "tsx src/scripts/makeAdmin.ts",
+    "test:cors": "tsx src/tests/corsHealthIntegrationTest.ts",
     "test:auth": "tsx src/tests/authTestSuite.ts",
     "test:phase3": "tsx src/tests/phase3TestSuite.ts",
     "test:advanced": "tsx src/tests/advancedFeaturesTestSuite.ts",

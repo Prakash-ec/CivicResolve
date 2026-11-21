@@ -99,4 +99,13 @@ describe('CivicResolve Core Requirements & Problem Statement Verification', () =
       expect(typeof attr).toBe('string');
     });
   });
+
+  // 8. Frontend API Client URL Normalization & CORS Integration
+  it('Requirement 8: Normalizes API URLs, handles trailing slashes, and prevents duplicate /api segments', async () => {
+    const { buildApiUrl } = await import('../services/api.js');
+    expect(buildApiUrl('/health')).toContain('/health');
+    const duplicateTest = buildApiUrl('/api/complaints/public-feed');
+    expect(duplicateTest).not.toContain('/api/api/');
+    expect(buildApiUrl('https://example.com/api')).toBe('https://example.com/api');
+  });
 });
