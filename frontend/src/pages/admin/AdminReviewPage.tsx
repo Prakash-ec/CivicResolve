@@ -269,7 +269,7 @@ export const AdminReviewPage: React.FC = () => {
                 </span>
                 <img
                   src={complaint.imageUrls[0]}
-                  alt="On-site evidence"
+                  alt={`On-site ground level evidence for ${complaint.title}`}
                   className="w-full h-64 sm:h-80 object-cover rounded-2xl border border-slate-200"
                 />
               </div>

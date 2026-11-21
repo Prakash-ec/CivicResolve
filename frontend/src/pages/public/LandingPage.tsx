@@ -77,8 +77,9 @@ export const LandingPage: React.FC = () => {
     async function loadData() {
       try {
         const statsRes = await publicService.getPublicStats();
-        if (isMounted && statsRes.data) {
-          setStats(statsRes.data);
+        const liveStats = statsRes.data || statsRes.stats;
+        if (isMounted && liveStats) {
+          setStats(liveStats);
         }
       } catch (err) {
         console.warn('Could not load live stats, using fallback defaults', err);
@@ -86,8 +87,9 @@ export const LandingPage: React.FC = () => {
 
       try {
         const feedRes = await publicService.getPublicFeed(8);
-        if (isMounted && feedRes.data && feedRes.data.length > 0) {
-          setFeed(feedRes.data);
+        const liveFeed = feedRes.data || feedRes.complaints;
+        if (isMounted && Array.isArray(liveFeed) && liveFeed.length > 0) {
+          setFeed(liveFeed);
         } else if (isMounted) {
           setFeed([
             {

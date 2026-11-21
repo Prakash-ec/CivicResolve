@@ -537,7 +537,7 @@ export const PublicTrackerPage: React.FC = () => {
                   <div className="rounded-2xl overflow-hidden border border-slate-200 aspect-video relative group shadow-xs">
                     <img
                       src={complaint.imageUrls[0]}
-                      alt="Grievance Evidence"
+                      alt={`Uploaded evidence for grievance ${complaint.publicId}`}
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -559,7 +559,7 @@ export const PublicTrackerPage: React.FC = () => {
                   {complaint.resolutionProof.proofImageUrl && (
                     <img
                       src={complaint.resolutionProof.proofImageUrl}
-                      alt="Resolution Proof"
+                      alt={`Official municipal resolution proof for grievance ${complaint.publicId}`}
                       className="w-full h-32 object-cover rounded-xl border border-emerald-200"
                     />
                   )}

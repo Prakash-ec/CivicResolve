@@ -71,22 +71,22 @@ export const createComplaintSchema = z.object({
   location: z.object({
     lat: z.number().min(-90).max(90, 'Latitude must be between -90 and 90'),
     lng: z.number().min(-180).max(180, 'Longitude must be between -180 and 180'),
-    addressText: z.string().min(3, 'Address must be at least 3 characters').max(500),
-    houseNumber: z.string().optional(),
-    street: z.string().optional(),
-    locality: z.string().optional(),
-    neighbourhood: z.string().optional(),
-    city: z.string().optional(),
-    district: z.string().optional(),
-    state: z.string().optional(),
-    postalCode: z.string().optional(),
-    country: z.string().optional(),
-    zone: z.string().optional(),
-    zoneId: z.string().optional(),
-    ward: z.string().optional(),
-    wardId: z.string().optional(),
-    block: z.string().optional(),
-    blockId: z.string().optional(),
+    addressText: z.string().min(3, 'Address must be at least 3 characters').max(500).transform(sanitizeInput),
+    houseNumber: z.string().transform(sanitizeInput).optional(),
+    street: z.string().transform(sanitizeInput).optional(),
+    locality: z.string().transform(sanitizeInput).optional(),
+    neighbourhood: z.string().transform(sanitizeInput).optional(),
+    city: z.string().transform(sanitizeInput).optional(),
+    district: z.string().transform(sanitizeInput).optional(),
+    state: z.string().transform(sanitizeInput).optional(),
+    postalCode: z.string().transform(sanitizeInput).optional(),
+    country: z.string().transform(sanitizeInput).optional(),
+    zone: z.string().transform(sanitizeInput).optional(),
+    zoneId: z.string().transform(sanitizeInput).optional(),
+    ward: z.string().transform(sanitizeInput).optional(),
+    wardId: z.string().transform(sanitizeInput).optional(),
+    block: z.string().transform(sanitizeInput).optional(),
+    blockId: z.string().transform(sanitizeInput).optional(),
     accuracyMeters: z.number().optional(),
     regionVerificationStatus: z.enum(['verified', 'unverified', 'citizen_specified']).optional(),
     geocodingSource: z.string().optional(),
@@ -491,7 +491,26 @@ router.get(['/complaints/mine', '/complaints/my'], requireAuth, async (req: Requ
  * GET /api/complaints/:id
  * Retrieve full complaint details and status timeline (owner or admin only)
  */
-router.get('/complaints/:id', requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+router.get(
+  '/complaints/:id',
+  (req: Request, _res: Response, next: NextFunction) => {
+    // Defense-in-depth: If request is for a literal public endpoint, do not capture here
+    const RESERVED_PUBLIC_SUBPATHS = [
+      'public-stats',
+      'public-feed',
+      'map-points',
+      'track',
+      'mine',
+      'my',
+    ];
+    const id = String(req.params.id);
+    if (RESERVED_PUBLIC_SUBPATHS.includes(id)) {
+      return next('route');
+    }
+    next();
+  },
+  requireAuth,
+  async (req: Request, res: Response, next: NextFunction) => {
   try {
     const id = String(req.params.id);
     const user = req.user!;
@@ -636,7 +655,7 @@ router.post('/complaints/:id/verify-resolution', requireAuth, async (req: Reques
     complaint.citizenVerification = {
       verifiedAt: nowIso,
       rating: typeof rating === 'number' && rating >= 1 && rating <= 5 ? rating : 5,
-      feedback: feedback ? String(feedback).slice(0, 500) : 'Resolution accepted and confirmed by citizen.',
+      feedback: feedback ? sanitizeInput(String(feedback)).slice(0, 500) : 'Resolution accepted and confirmed by citizen.',
       verifiedByUid: user.uid,
     };
     complaint.updatedAt = nowIso;
@@ -684,9 +703,10 @@ router.post('/complaints/:id/reopen', requireAuth, async (req: Request, res: Res
   try {
     const user = req.user!;
     const id = String(req.params.id || '');
-    const { reopenReason } = req.body;
+    const rawReason = typeof req.body?.reopenReason === 'string' ? req.body.reopenReason : '';
+    const reopenReason = sanitizeInput(rawReason);
 
-    if (!reopenReason || typeof reopenReason !== 'string' || reopenReason.trim().length < 10) {
+    if (!reopenReason || reopenReason.length < 10) {
       return res.status(400).json({
         error: {
           code: 'VALIDATION_ERROR',

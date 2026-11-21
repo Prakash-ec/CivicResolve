@@ -130,6 +130,8 @@ export const AICivicAssistantModal: React.FC<AICivicAssistantModalProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
+          aria-label="Open AI Civic Assistant"
+          aria-expanded={isOpen}
           className="relative group bg-[#0F2854] hover:bg-[#0B132B] text-white p-3.5 rounded-full shadow-xl transition-transform hover:scale-105 flex items-center justify-center border-2 border-orange-500/40"
           title="Open AI Civic Assistant"
         >
@@ -141,7 +143,12 @@ export const AICivicAssistantModal: React.FC<AICivicAssistantModalProps> = ({
 
       {/* Floating Chat Modal Pane */}
       {isOpen && (
-        <div className="fixed bottom-22 right-4 sm:right-6 z-50 w-[92vw] sm:w-[410px] h-[560px] bg-white rounded-2xl shadow-2xl border border-slate-300 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+        <div
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="civic-assistant-title"
+          className="fixed bottom-22 right-4 sm:right-6 z-50 w-[92vw] sm:w-[410px] h-[560px] bg-white rounded-2xl shadow-2xl border border-slate-300 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200"
+        >
           {/* Header */}
           <div className="bg-[#0B132B] text-white px-4 py-3 flex items-center justify-between border-b border-white/10">
             <div className="flex items-center gap-2">
@@ -149,7 +156,7 @@ export const AICivicAssistantModal: React.FC<AICivicAssistantModalProps> = ({
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                <h3 id="civic-assistant-title" className="text-xs font-bold uppercase tracking-wider text-white">
                   Civic Assistant
                 </h3>
                 <span className="text-[10px] text-emerald-400 flex items-center gap-1">
@@ -165,6 +172,7 @@ export const AICivicAssistantModal: React.FC<AICivicAssistantModalProps> = ({
               <select
                 value={language}
                 onChange={(e) => handleLanguageChange(e.target.value as any)}
+                aria-label="AI Assistant Language"
                 className="bg-white/10 text-white text-[11px] rounded px-1.5 py-0.5 border border-white/20 focus:outline-none focus:ring-1 focus:ring-orange-400"
               >
                 {LANGUAGES.map((l) => (
@@ -253,6 +261,7 @@ export const AICivicAssistantModal: React.FC<AICivicAssistantModalProps> = ({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSend();
               }}
+              aria-label="Ask AI Assistant in your regional language"
               placeholder={`Ask in ${LANGUAGES.find((l) => l.code === language)?.label || 'any language'}...`}
               className="flex-1 text-xs px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-1 focus:ring-orange-500"
               disabled={loading}
@@ -261,6 +270,7 @@ export const AICivicAssistantModal: React.FC<AICivicAssistantModalProps> = ({
               type="button"
               onClick={() => handleSend()}
               disabled={!inputMessage.trim() || loading}
+              aria-label="Send message"
               className="p-2 rounded-lg bg-[#0F2854] text-white hover:bg-[#0B132B] disabled:opacity-50 transition-colors"
             >
               <Send className="w-4 h-4" />

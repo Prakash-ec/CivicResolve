@@ -357,7 +357,7 @@ export const MyComplaintsPage: React.FC = () => {
                   {comp.imageUrls && comp.imageUrls.length > 0 && (
                     <img
                       src={comp.imageUrls[0]}
-                      alt="Complaint Evidence"
+                      alt={`Evidence for grievance ${comp.publicId}: ${comp.title}`}
                       className="w-full h-32 object-cover rounded-2xl border border-slate-200 mt-2"
                     />
                   )}

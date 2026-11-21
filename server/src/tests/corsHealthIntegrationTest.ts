@@ -91,6 +91,74 @@ async function runCorsHealthIntegrationTests() {
         return `Unauthorized origin correctly rejected with HTTP 403: ${data.error.code}`;
       },
     },
+    {
+      name: 'TEST-PUB-01: GET /api/complaints/public-stats returns HTTP 200 without auth token',
+      fn: async () => {
+        const res = await fetch(`${baseUrl}/api/complaints/public-stats`);
+        assert.strictEqual(res.status, 200, `Expected HTTP 200, got ${res.status}`);
+        const data: any = await res.json();
+        assert.strictEqual(data.success, true);
+        assert.ok(data.stats, 'Missing stats object in public-stats response');
+        assert.strictEqual(typeof data.stats.total, 'number');
+        assert.strictEqual(typeof data.stats.resolved, 'number');
+        assert.strictEqual(typeof data.stats.resolutionRate, 'number');
+        return `Public stats returned 200 OK: total=${data.stats.total}, resolved=${data.stats.resolved}, rate=${data.stats.resolutionRate}%`;
+      },
+    },
+    {
+      name: 'TEST-PUB-02: GET /api/complaints/public-feed returns HTTP 200 without auth token',
+      fn: async () => {
+        const res = await fetch(`${baseUrl}/api/complaints/public-feed?limit=5`);
+        assert.strictEqual(res.status, 200, `Expected HTTP 200, got ${res.status}`);
+        const data: any = await res.json();
+        assert.strictEqual(data.success, true);
+        const feed = data.complaints || data.data;
+        assert.ok(Array.isArray(feed), 'Expected feed array in response');
+        assert.ok(feed.length > 0, 'Feed should contain complaints');
+        return `Public feed returned 200 OK: count=${feed.length}, firstId=${feed[0].publicId}`;
+      },
+    },
+    {
+      name: 'TEST-PUB-03: Private complaint endpoint GET /api/complaints/demo_comp_1 rejects without token (HTTP 401)',
+      fn: async () => {
+        const res = await fetch(`${baseUrl}/api/complaints/demo_comp_1`);
+        assert.strictEqual(res.status, 401, `Expected HTTP 401, got ${res.status}`);
+        const data: any = await res.json();
+        assert.strictEqual(data.error?.code, 'UNAUTHORIZED');
+        return `Private complaint correctly rejected with HTTP 401: ${data.error?.message}`;
+      },
+    },
+    {
+      name: 'TEST-PUB-04: Admin endpoint GET /api/admin/overview rejects without token (HTTP 401)',
+      fn: async () => {
+        const res = await fetch(`${baseUrl}/api/admin/overview`);
+        assert.strictEqual(res.status, 401, `Expected HTTP 401, got ${res.status}`);
+        const data: any = await res.json();
+        assert.strictEqual(data.error?.code, 'UNAUTHORIZED');
+        return `Admin endpoint correctly rejected with HTTP 401: ${data.error?.message}`;
+      },
+    },
+    {
+      name: 'TEST-PUB-05: Public complaints feed response contains zero sensitive user fields',
+      fn: async () => {
+        const res = await fetch(`${baseUrl}/api/complaints/public-feed?limit=10`);
+        assert.strictEqual(res.status, 200);
+        const data: any = await res.json();
+        const feed: any[] = data.complaints || data.data || [];
+        for (const item of feed) {
+          assert.strictEqual(item.ownerUid, undefined, `Feed item ${item.id} leaked ownerUid`);
+          assert.strictEqual(item.ownerEmail, undefined, `Feed item ${item.id} leaked ownerEmail`);
+          assert.strictEqual(item.ownerPhone, undefined, `Feed item ${item.id} leaked ownerPhone`);
+          assert.strictEqual(item.citizenPhone, undefined, `Feed item ${item.id} leaked citizenPhone`);
+          assert.strictEqual(item.internalNotes, undefined, `Feed item ${item.id} leaked internalNotes`);
+          // Verify public fields are present
+          assert.ok(item.publicId, 'Public field publicId missing');
+          assert.ok(item.title, 'Public field title missing');
+          assert.ok(item.status, 'Public field status missing');
+        }
+        return `Verified ${feed.length} feed items: zero sensitive/PII fields exposed.`;
+      },
+    },
   ];
 
   let passed = 0;

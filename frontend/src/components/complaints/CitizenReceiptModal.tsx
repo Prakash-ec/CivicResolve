@@ -72,14 +72,14 @@ export const CitizenReceiptModal: React.FC<CitizenReceiptModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="digital-receipt-title">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Top Header */}
         <div className="bg-[#0B132B] text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <img src="/logo-icon.png" alt="CivicResolve" className="w-6 h-6 object-contain" />
             <div>
-              <h2 className="text-sm font-bold tracking-tight text-white uppercase">
+              <h2 id="digital-receipt-title" className="text-sm font-bold tracking-tight text-white uppercase">
                 Digital Citizen Receipt
               </h2>
               <p className="text-[11px] text-blue-200">
@@ -89,6 +89,7 @@ export const CitizenReceiptModal: React.FC<CitizenReceiptModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close digital citizen receipt"
             className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />

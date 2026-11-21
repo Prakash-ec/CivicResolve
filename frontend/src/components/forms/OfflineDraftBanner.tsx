@@ -44,6 +44,7 @@ export const OfflineDraftBanner: React.FC = () => {
             type="button"
             onClick={() => syncDrafts()}
             disabled={isSyncing}
+            aria-label="Synchronize offline drafts now"
             className="px-2.5 py-1 rounded bg-white text-blue-900 font-bold text-[11px] hover:bg-blue-50 transition-colors inline-flex items-center gap-1.5 shrink-0 shadow-xs"
           >
             <RefreshCw className={`w-3 h-3 ${isSyncing ? 'animate-spin' : ''}`} />

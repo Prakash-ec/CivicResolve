@@ -121,6 +121,48 @@ const INITIAL_DEMO_COMPLAINTS = [
   },
 ];
 
+// Helper to scrub and return only approved public complaint fields
+function toPublicComplaint(c: any): any {
+  const rawLat = c.location?.lat ?? c.location?.latitude ?? 13.0827;
+  const rawLng = c.location?.lng ?? c.location?.longitude ?? 80.2707;
+  const safeLat = Number(Number(rawLat).toFixed(4));
+  const safeLng = Number(Number(rawLng).toFixed(4));
+
+  // Mask private door/house numbers from public address text
+  const safeAddressText = (c.location?.addressText || '')
+    .replace(/^#?\s*\d+[-\w\/]*,?\s*/i, '')
+    .replace(/\b(Flat|Apt|Plot|Door|House)\s*(No\.?|#)?\s*\d+[-\w\/]*,?\s*/gi, '')
+    .trim();
+
+  return {
+    id: c.id,
+    publicId: c.publicId,
+    title: c.title,
+    description: c.description,
+    userCategory: c.userCategory,
+    category: c.userCategory, // Normalized alias for UI components
+    status: c.status,
+    statusLabel: c.statusLabel || PUBLIC_STATUS_LABELS[c.status as keyof typeof PUBLIC_STATUS_LABELS] || c.status,
+    priority: c.priority || { level: 'medium', score: 50 },
+    department: c.department || { id: 'dept_general', name: 'Municipal Administration' },
+    location: {
+      lat: safeLat,
+      lng: safeLng,
+      addressText: safeAddressText || c.location?.addressText || '',
+      ward: c.location?.ward || 'General Ward',
+      zone: c.location?.zone || 'Central Zone',
+      municipality: c.location?.municipality || 'Greater Chennai Corporation',
+    },
+    imageUrls: c.imageUrls || [],
+    resolutionProof: c.resolutionProof || null,
+    upvotes: c.upvotes || 0,
+    createdAt: c.createdAt,
+    updatedAt: c.updatedAt || c.createdAt,
+    slaTargetHours: c.sla?.targetHours || 48,
+    isOverdue: Boolean(c.sla?.isOverdue),
+  };
+}
+
 // Helper to get all combined complaints (Firestore or memory store + demo seed)
 function getAllComplaints(): any[] {
   const storeComplaints = Array.from(localComplaintsStore.values());
@@ -137,7 +179,7 @@ function getAllComplaints(): any[] {
 
 /**
  * GET /api/complaints/public-stats
- * Real-time public statistics for landing page and overview cards
+ * Real-time public statistics for landing page and overview cards (Unauthenticated)
  */
 router.get('/complaints/public-stats', async (_req: Request, res: Response) => {
   const all = getAllComplaints();
@@ -151,23 +193,26 @@ router.get('/complaints/public-stats', async (_req: Request, res: Response) => {
   ).length;
   const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
 
+  const statsPayload = {
+    total,
+    resolved,
+    inProgress,
+    pendingReview,
+    resolutionRate,
+    activeCitizens: Math.max(12, total * 3 + 14),
+    creditsAwarded: resolved * 45 + inProgress * 15 + 240,
+  };
+
   res.json({
     success: true,
-    stats: {
-      total,
-      resolved,
-      inProgress,
-      pendingReview,
-      resolutionRate,
-      activeCitizens: Math.max(12, total * 3 + 14),
-      creditsAwarded: resolved * 45 + inProgress * 15 + 240,
-    },
+    stats: statsPayload,
+    data: statsPayload,
   });
 });
 
 /**
  * GET /api/complaints/public-feed
- * Live complaint snapshots with query-level filtering, search, and pagination
+ * Live complaint snapshots with query-level filtering, search, and pagination (Unauthenticated)
  */
 router.get('/complaints/public-feed', async (req: Request, res: Response) => {
   const limit = Math.min(Math.max(parseInt(req.query.limit as string, 10) || 6, 1), 50);
@@ -196,11 +241,13 @@ router.get('/complaints/public-feed', async (req: Request, res: Response) => {
   }
 
   const totalCount = all.length;
-  const feed = all.slice(offset, offset + limit);
+  const rawFeed = all.slice(offset, offset + limit);
+  const scrubbedFeed = rawFeed.map(toPublicComplaint);
 
   res.json({
     success: true,
-    complaints: feed,
+    complaints: scrubbedFeed,
+    data: scrubbedFeed,
     pagination: {
       total: totalCount,
       limit,

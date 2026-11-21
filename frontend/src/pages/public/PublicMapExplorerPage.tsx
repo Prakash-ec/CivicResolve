@@ -611,6 +611,7 @@ export const PublicMapExplorerPage: React.FC = () => {
                 type="button"
                 onClick={() => setSelectedPoint(null)}
                 className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700"
+                aria-label="Close grievance details"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -619,7 +620,7 @@ export const PublicMapExplorerPage: React.FC = () => {
             {selectedPoint.imageUrl && (
               <img
                 src={selectedPoint.imageUrl}
-                alt="Complaint on-site evidence"
+                alt={`Evidence photo for ${selectedPoint.title}`}
                 className="w-full h-32 object-cover rounded-xl border border-slate-200"
               />
             )}

@@ -143,10 +143,12 @@ export async function checkBackendHealth() {
 // Public API Service
 export const publicService = {
   getPublicStats: async () => {
-    return apiClient<{ success: boolean; data: any }>('/complaints/public-stats');
+    return apiClient<{ success: boolean; data: any; stats: any }>('/complaints/public-stats');
   },
   getPublicFeed: async (limit = 8) => {
-    return apiClient<{ success: boolean; data: any[] }>(`/complaints/public-feed?limit=${limit}`);
+    return apiClient<{ success: boolean; data: any[]; complaints: any[] }>(
+      `/complaints/public-feed?limit=${limit}`
+    );
   },
   trackComplaint: async (publicId: string) => {
     return apiClient<{ success: boolean; complaint: any; timeline: any[] }>(

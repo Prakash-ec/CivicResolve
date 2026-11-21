@@ -114,7 +114,7 @@ export const Navbar: React.FC = () => {
             </a>
             <span className="hidden md:inline text-white/30">|</span>
             {/* Font Resizer */}
-            <div className="inline-flex items-center gap-1 font-mono text-[10px] bg-white/10 rounded px-1.5 py-0.5">
+            <div className="inline-flex items-center gap-1 font-mono text-[10px] bg-white/10 rounded px-1.5 py-0.5" role="group" aria-label="Text size controls">
               <button
                 type="button"
                 onClick={() => handleFontSizeChange('90%')}
@@ -122,6 +122,7 @@ export const Navbar: React.FC = () => {
                   fontSize === '90%' ? 'font-bold text-orange-400 underline' : 'text-white/80'
                 }`}
                 title="Decrease font size"
+                aria-label="Decrease font size"
               >
                 A-
               </button>
@@ -132,6 +133,7 @@ export const Navbar: React.FC = () => {
                   fontSize === '100%' ? 'font-bold text-orange-400 underline' : 'text-white/80'
                 }`}
                 title="Default font size"
+                aria-label="Default font size"
               >
                 A
               </button>
@@ -142,6 +144,7 @@ export const Navbar: React.FC = () => {
                   fontSize === '110%' ? 'font-bold text-orange-400 underline' : 'text-white/80'
                 }`}
                 title="Increase font size"
+                aria-label="Increase font size"
               >
                 A+
               </button>
@@ -491,6 +494,8 @@ export const Navbar: React.FC = () => {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1"
               aria-label="Toggle navigation menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -500,7 +505,7 @@ export const Navbar: React.FC = () => {
 
       {/* 3. Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2 animate-fadeIn shadow-lg">
+        <div id="mobile-nav-menu" className="md:hidden border-t border-slate-200 bg-white px-4 pt-3 pb-6 space-y-2 animate-fadeIn shadow-lg">
           <div className="mb-3 flex items-center justify-between gap-2">
             <CurrentLocationCard compact={false} />
             <LanguageToggle />

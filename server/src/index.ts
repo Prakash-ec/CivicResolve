@@ -34,6 +34,14 @@ app.use(
         upgradeInsecureRequests: [],
       },
     },
+    hsts: {
+      maxAge: 31536000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    xContentTypeOptions: true,
+    xXssProtection: true,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
@@ -80,6 +88,33 @@ const generalLimiter = rateLimit({
 });
 app.use('/api', generalLimiter);
 
+// Dedicated authentication rate limiter (brute-force defense)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: {
+    error: {
+      code: 'AUTH_RATE_LIMIT_EXCEEDED',
+      message: 'Too many authentication attempts. Please try again after 15 minutes.',
+    },
+  },
+});
+app.use('/api/auth', authLimiter);
+
+// Dedicated AI endpoint rate limiter (quota draining defense)
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: {
+    error: {
+      code: 'AI_RATE_LIMIT_EXCEEDED',
+      message: 'Too many AI requests. Please slow down and try again shortly.',
+    },
+  },
+});
+app.use('/api/ai', aiLimiter);
+app.use('/api/complaints/ai', aiLimiter);
+
 // Body parsing with size limits
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -90,8 +125,8 @@ app.use('/uploads', express.static(path.resolve(process.cwd(), 'public/uploads')
 // Health check and auth endpoints
 app.use('/api', healthRoutes);
 app.use('/api', authRoutes);
+app.use('/api', publicRoutes); // Public grievance feed & statistics mounted BEFORE parameterized citizen routes
 app.use('/api', citizenRoutes);
-app.use('/api', publicRoutes);
 app.use('/api', geographyRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/admin', adminRoutes);

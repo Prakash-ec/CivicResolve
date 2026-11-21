@@ -136,6 +136,7 @@ export const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
         <button
           type="button"
           onClick={toggleListening}
+          aria-label={isListening ? "Stop voice recording" : "Start voice dictation"}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs ${
             isListening
               ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
@@ -163,6 +164,7 @@ export const VoiceInputButton: React.FC<VoiceInputButtonProps> = ({
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value as any)}
             disabled={isListening}
+            aria-label="Select voice recognition language"
             className="bg-transparent text-slate-800 text-[11px] font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 cursor-pointer"
           >
             <option value="en-IN">English (India)</option>

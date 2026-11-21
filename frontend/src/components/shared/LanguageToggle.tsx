@@ -57,6 +57,8 @@ export const LanguageToggle: React.FC = () => {
         onClick={() => setOpen(!open)}
         className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold rounded bg-white/10 hover:bg-white/20 text-white transition-colors border border-white/20 focus:outline-none focus:ring-2 focus:ring-orange-400"
         aria-label="Select Language"
+        aria-expanded={open}
+        aria-haspopup="listbox"
         title="Select regional language"
       >
         <Globe className="w-3.5 h-3.5 text-orange-400" />
@@ -65,7 +67,7 @@ export const LanguageToggle: React.FC = () => {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1.5 w-40 rounded-xl bg-white border border-slate-200 shadow-2xl py-1.5 z-50 animate-fadeIn text-slate-800">
+        <div className="absolute right-0 mt-1.5 w-40 rounded-xl bg-white border border-slate-200 shadow-2xl py-1.5 z-50 animate-fadeIn text-slate-800" role="listbox" aria-label="Select regional language">
           <div className="px-3 py-1 border-b border-slate-100 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Regional Languages
           </div>
@@ -75,6 +77,8 @@ export const LanguageToggle: React.FC = () => {
               <button
                 key={lang.code}
                 type="button"
+                role="option"
+                aria-selected={isSelected}
                 onClick={() => handleSelectLanguage(lang.code)}
                 className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 transition-colors ${
                   isSelected ? 'font-bold text-[#0F2854] bg-blue-50/80' : 'text-slate-700'
